@@ -27,7 +27,7 @@ list_of_admin_roles = [
 # ################# #
 
 # 
-async def is_user_admin(user):
+def is_user_admin(user):
     if user.id in list_of_admins:
         return True
     else:
@@ -91,7 +91,9 @@ async def on_message(message):
 async def on_presence_update(before, after):
     if not hasattr(after.activity, "name"):
         return
-
+    if hasattr(before.activity, "name"):
+        if before.activity.name == "League of Legends":
+            return
     if after.activity.name == "League of Legends":
         await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} JE UPALIO LEAGUE OF LEGENDS!!!")
 
@@ -107,6 +109,13 @@ async def social(ctx):
     await ctx.send(f"Your social credit score is: " + str(social_credit))
 
 
+@bot.command(name="stop", help="Stops the bot")
+async def stop(ctx):
+    if is_user_admin(ctx.message.author):
+        exit()
+        return
+    await ctx.send(f"Fakjumin")
+
 @bot.command(name="ping", help="Pings the bot")
 async def ping(ctx):
     await ctx.send("pong")
@@ -114,7 +123,7 @@ async def ping(ctx):
 @bot.command(name="whoami", help="Displays who you are")
 async def whoami(ctx):
     is_author_bot_admin : bool = False
-    if await is_user_admin(ctx.message.author):
+    if is_user_admin(ctx.message.author):
         is_author_bot_admin = True
     await ctx.send(f"{ctx.message.author.mention}\nUsername: {ctx.message.author.name}\nDisplay name: {ctx.message.author.display_name}\nTrowel Admin: " + str(is_author_bot_admin))
 
