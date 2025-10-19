@@ -1,6 +1,7 @@
 # bot.py
 import os
 import discord
+import datetime
 import random
 import json
 
@@ -97,6 +98,13 @@ async def on_presence_update(before, after):
     if after.activity.name == "League of Legends":
         await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} JE UPALIO LEAGUE OF LEGENDS!!!")
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    if reaction.emoji == "⏰" and reaction.count == 3:
+        await reaction.message.author.timeout(datetime.timedelta(minutes=5), reason=f"Democracy")
+        await reaction.message.reply(file=discord.File(r"./Images/Time.png"))
+        print(f"{reaction.message.author.id} timed out democratically")
+
 
 # ############ #
 # BOT COMMANDS #
@@ -129,7 +137,7 @@ async def whoami(ctx):
 
 @bot.command(name="pedro", help="Pedro")
 async def pedro(ctx):
-    random_pedro = random.randint(0, 9)
+    random_pedro = random.randint(0, 39)
     await ctx.channel.send(file=discord.File(r"./Pedro/Pedro" + str(random_pedro) + ".jpg"))
 
 bot.run(TOKEN)
