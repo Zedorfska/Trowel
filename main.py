@@ -45,28 +45,41 @@ def is_user_admin(user):
 
 # SAVE AND LOAD
 def save_database(data):
-    with open("BetonCredit.json", "w") as f:
+    with open("database.json", "w") as f:
         json.dump(data, f, indent = 4)
 
 def load_database():
-    with open("BetonCredit.json", "r") as f:
+    with open("database.json", "r") as f:
         return json.load(f)
+
+# CHECK AND ADD SERVER
+def server_instantiate(server):
+    database = load_database()
+    if not str(server.id) in database:
+        database[server.id] = {
+            "config": {
+            },
+            "social": {
+            }
+        }
+        save_database(database)
 
 # CHECK AND ADD USER
 def database_instantiate(user):
-    credit_database = load_database()
-    if not str(user.id) in credit_database:
-        credit_database[user.id] = {
+    server_instantiate(user.guild)
+    database = load_database()
+    if not str(user.id) in database[str(user.guild.id)]["social"]:
+        database[str(user.guild.id)]["social"][str(user.id)] = {
             "name": user.name,
             "credit": 0
         }
-        save_database(credit_database)
+        save_database(database)
 
 # SOCIAL CREDIT
 def get_social_credit(user):
     database_instantiate(user)
-    credit_database = load_database()
-    return credit_database[str(user.id)]["credit"]
+    database = load_database()
+    return database[str(user.guild.id)]["social"][str(user.id)]["credit"]
 
 
 def add_social_credit(user):
@@ -113,9 +126,18 @@ async def on_reaction_add(reaction, user):
 # ############ #
 
 #
-@bot.command(name="Setup", help="Set the bot up")
+@bot.command(name="test", help="testcommand")
+async def test(ctx):
+    x = load_database()
+
+@bot.command(name="setup", help="Set the bot up")
 async def setup(ctx):
-    #
+    server_instantiate(ctx.guild)
+    await ctx.send(f"{ctx.guild.id}")
+
+@bot.command(name="serverfetch", help="Linus")
+async def serverfetch(ctx):
+    await ctx.send(f"Server name: {ctx.guild}")
 
 @bot.command(name="social_standing", help="does the thing")
 async def social(ctx):
