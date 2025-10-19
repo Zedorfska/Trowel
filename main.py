@@ -35,6 +35,8 @@ def is_user_admin(user):
         for role in user.roles:
             if role.id in list_of_admin_roles:
                 return True
+            if role.name == "Trowel Admin":
+                return True
     return False
 
 # ################## #
@@ -111,6 +113,10 @@ async def on_reaction_add(reaction, user):
 # ############ #
 
 #
+@bot.command(name="Setup", help="Set the bot up")
+async def setup(ctx):
+    #
+
 @bot.command(name="social_standing", help="does the thing")
 async def social(ctx):
     social_credit = get_social_credit(ctx.message.author)
