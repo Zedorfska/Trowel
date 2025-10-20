@@ -82,8 +82,12 @@ def get_social_credit(user):
     return database[str(user.guild.id)]["social"][str(user.id)]["credit"]
 
 
-def add_social_credit(user):
-    pass
+def add_social_credit(user, amount):
+    database_instantiate(user)
+    database = load_database()
+    database[str(user.guild.id)]["social"][str(user.id)]["credit"] += int(amount)
+    save_database(database)
+    #return database[str(user.guild.id)]["social"][str(user.id)]["credit"]
 
 
 # ########## #
@@ -130,11 +134,6 @@ async def on_reaction_add(reaction, user):
 async def test(ctx):
     x = load_database()
 
-@bot.command(name="setup", help="Set the bot up")
-async def setup(ctx):
-    server_instantiate(ctx.guild)
-    await ctx.send(f"{ctx.guild.id}")
-
 @bot.command(name="serverfetch", help="Linus")
 async def serverfetch(ctx):
     await ctx.send(f"Server name: {ctx.guild}")
@@ -144,13 +143,20 @@ async def social(ctx):
     social_credit = get_social_credit(ctx.message.author)
     await ctx.send(f"Your social credit score is: " + str(social_credit))
 
+@bot.command(name="social_add", help="does the other thing")
+async def social_add(ctx, user: discord.Member, amount):
+    if not is_user_admin(ctx.message.author):
+        await ctx.send(f"erm")
+        return
+    add_social_credit(user, amount)
+    await ctx.send(f"Added {amount} social credit to {user.mention}, they now have {get_social_credit(user)} social credit")
 
 @bot.command(name="stop", help="Stops the bot")
 async def stop(ctx):
-    if is_user_admin(ctx.message.author):
-        exit()
+    if not is_user_admin(ctx.message.author):
+        await ctx.send(f"Fakjumin")
         return
-    await ctx.send(f"Fakjumin")
+    exit()
 
 @bot.command(name="ping", help="Pings the bot")
 async def ping(ctx):
