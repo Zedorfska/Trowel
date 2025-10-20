@@ -81,13 +81,13 @@ def get_social_credit(user):
     database = load_database()
     return database[str(user.guild.id)]["social"][str(user.id)]["credit"]
 
-
 def add_social_credit(user, amount):
     database_instantiate(user)
     database = load_database()
     database[str(user.guild.id)]["social"][str(user.id)]["credit"] += int(amount)
     save_database(database)
     #return database[str(user.guild.id)]["social"][str(user.id)]["credit"]
+
 
 
 # ########## #
@@ -107,8 +107,9 @@ async def on_message(message):
         await message.channel.send(file=discord.File(r"./Images/KillYourself.jpg"))
     await bot.process_commands(message)
 
-@bot.event
-async def on_presence_update(before, after):
+
+
+async def check_league_of_legends(before, after):
     if not hasattr(after.activity, "name"):
         return
     if hasattr(before.activity, "name"):
@@ -118,11 +119,21 @@ async def on_presence_update(before, after):
         await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} JE UPALIO LEAGUE OF LEGENDS!!!")
 
 @bot.event
-async def on_reaction_add(reaction, user):
+async def on_presence_update(before, after):
+    await check_league_of_legends(before, after)
+
+
+
+async def check_democratic_timeout(reaction, user):
     if reaction.emoji == "⏰" and reaction.count == 3:
         await reaction.message.author.timeout(datetime.timedelta(minutes=5), reason=f"Democracy")
         await reaction.message.reply(file=discord.File(r"./Images/Time.png"))
-        print(f"{reaction.message.author.id} timed out democratically")
+        print(f"{reaction.message.author.display_name} timed out democratically")
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    await check_democratic_timeout(reaction, user)
+
 
 
 # ############ #
@@ -130,13 +141,22 @@ async def on_reaction_add(reaction, user):
 # ############ #
 
 #
-@bot.command(name="test", help="testcommand")
-async def test(ctx):
-    x = load_database()
-
 @bot.command(name="serverfetch", help="Linus")
 async def serverfetch(ctx):
-    await ctx.send(f"Server name: {ctx.guild}")
+    embed = discord.Embed(
+    title = f"{ctx.guild.name}",
+    description = f"Description",
+    color = discord.Colour.from_rgb(196, 90, 117))
+    embed.set_author(
+    name = f"Author Name",
+    url = ctx.guild.icon.url,
+    icon_url = ctx.guild.icon.url
+    )
+    embed.set_thumbnail(url = ctx.guild.icon.url)
+    embed.add_field(name = f"Kurac", value = f"Palac", inline = False)
+    embed.add_field(name = f"Sisa", value = f"Dinamo", inline = True)
+    await ctx.send(embed = embed)
+    #await ctx.send(f"Server name: {ctx.guild}")
 
 @bot.command(name="social_standing", help="does the thing")
 async def social(ctx):
