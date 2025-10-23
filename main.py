@@ -116,24 +116,41 @@ async def check_league_of_legends(before, after):
         if before.activity.name == "League of Legends":
             return
     if after.activity.name == "League of Legends":
-        await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} JE UPALIO LEAGUE OF LEGENDS!!!")
+        add_social_credit(after, -200)
+        await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} JE UPALIO LEAGUE OF LEGENDS!!!\n-200 Social Credit")
+
+async def check_mia_clipstudiopaint(before, after):
+    if not after.id == 1123752229552267264:
+        return
+    if not hasattr(after.activity, "name"):
+        return
+    if hasattr(before.activity, "name"):
+        if before.activity == "CLIP STUDIO PAINT":
+            return
+    user = await bot.fetch_user("1123752229552267264")
+    if not after.activity.name == "CLIP STUDIO PAINT":
+        await user.send("Lezbo raspala, pali Clip Studio Paint")
+    else:
+        await user.send("Fala")
+
 
 @bot.event
 async def on_presence_update(before, after):
     await check_league_of_legends(before, after)
+    await check_mia_clipstudiopaint(before, after)
 
 
 
 async def check_democratic_timeout(reaction, user):
     if reaction.emoji == "⏰" and reaction.count == 3:
+        add_social_credit(reaction.message.authorl, -200)
+        await reaction.message.reply(f"Začepi.\n-200 Social Credit", file=discord.File(r"./Images/Time.png"))
         await reaction.message.author.timeout(datetime.timedelta(minutes=5), reason=f"Democracy")
-        await reaction.message.reply(file=discord.File(r"./Images/Time.png"))
         print(f"{reaction.message.author.display_name} timed out democratically")
 
 @bot.event
 async def on_reaction_add(reaction, user):
     await check_democratic_timeout(reaction, user)
-
 
 
 # ############ #
