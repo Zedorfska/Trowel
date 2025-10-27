@@ -175,15 +175,48 @@ async def serverfetch(ctx):
     await ctx.send(embed = embed)
     #await ctx.send(f"Server name: {ctx.guild}")
 
-@bot.command(name="social_standing", help="does the thing")
+#        #
+# SOCIAL #
+#        #
+
+@bot.group(name = "social", help = "Perform various social credit actions", invoke_without_command = True)
 async def social(ctx):
+    await ctx.send("None or invalid arguments. try `help social`")
+
+@social.command(name = "standing")
+async def social_standing(ctx):
     social_credit = get_social_credit(ctx.message.author)
     await ctx.send(f"Your social credit score is: " + str(social_credit))
 
-@bot.command(name="social_add", help="does the other thing")
-async def social_add(ctx, user: discord.Member, amount):
+@social.command(name = "leaderboard")
+async def social_leaderboard(ctx, amount = 10):
+    database = load_database()
+    data = database[str(ctx.guild.id)]["social"]
+    top = sorted(data.items(), key=lambda x: x[1].get("credit", 0), reverse=True)[:amount]
+    string = f"--- TOP {amount} SOCIAL CREDIT HAVERS ---\n\n"
+    for i in range(amount):
+        if i < len(top):
+            string = string + f"{ctx.guild.get_member(int(top[i][0])).display_name} - {top[i][1]['credit']}\n"
+        else:
+            break
+    await ctx.send(string)
+
+@social.command(name = "add")
+async def social_add(ctx, user: discord.Member = None, amount = None):
     if not is_user_admin(ctx.message.author):
-        await ctx.send(f"erm")
+        await ctx.send("erm")
+        return
+    print(user)
+    if user == None or amount == None:
+        await ctx.send("Proper format: `social add {user.mention} {amount}`")
+        return
+    if not isinstance(user, discord.Member):
+        await ctx.send("Argument 1 must be a Discord user. `social add {user.mention} {amount}`")
+        return
+    if amount.isdigit():
+        amount = int(amount)
+    else:
+        await ctx.send("Argument 2 must be int. `social add {user.mention} {amount}`")
         return
     add_social_credit(user, amount)
     await ctx.send(f"Added {amount} social credit to {user.mention}, they now have {get_social_credit(user)} social credit")
@@ -210,5 +243,13 @@ async def whoami(ctx):
 async def pedro(ctx):
     random_pedro = random.randint(0, 39)
     await ctx.channel.send(file=discord.File(r"./Pedro/Pedro" + str(random_pedro) + ".jpg"))
+
+@bot.command(name="test", help="test command")
+async def test(ctx):
+    message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+    print(message.content)
+    if "**Your group is on a " in message.content and " day streak!** 🔥🔥🔥 Here are yesterday's results:" in message.content:
+        print("Daily Wordle message detected.")
+    #await ctx.send(message.author.id)
 
 bot.run(TOKEN)
