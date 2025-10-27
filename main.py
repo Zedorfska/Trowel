@@ -4,6 +4,7 @@ import discord
 import datetime
 import random
 import json
+import re
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -38,6 +39,17 @@ def is_user_admin(user):
             if role.name == "Trowel Admin":
                 return True
     return False
+
+#
+#
+#
+
+# TODO: make this work when user not in guild
+async def get_user_from_mention(user_mention, guild):
+    user_id = user_mention[2:-1]
+    user = await guild.fetch_member(user_id)
+    return user
+
 
 # ################## #
 # DATABASE FUNCTIONS #
@@ -89,19 +101,82 @@ def add_social_credit(user, amount):
     #return database[str(user.guild.id)]["social"][str(user.id)]["credit"]
 
 
+#
+#
+#
+
+
+async def do_wordle_against_message(message):
+    if message.author.id == 1211781489931452447 and " day streak!** 🔥🔥🔥 Here are yesterday's results:" in message.content:
+        pattern = r"(\b\w+/6):((?: <@[\d]+>)+)"
+        matches = re.findall(pattern, message.content)
+        results = {}
+        for score, users in matches:
+            user_list = [u.strip() for u in users.split()]
+            results[score] = user_list
+        string = "THE RESULTS ARE IN.\n\n"
+        for score, users in results.items():
+            match score:
+                case "1/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. -800 Social Credit. The state is dissapointed.\n"
+                        add_social_credit(user, -800)
+                case "2/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. +500 Social Credit.\n"
+                        add_social_credit(user, 500)
+                case "3/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. +400 Social Credit.\n"
+                        add_social_credit(user, 400)
+                case "4/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. +200 Social Credit.\n"
+                        add_social_credit(user, 200)
+                case "5/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. +100 Social Credit.\n"
+                        add_social_credit(user, 100)
+                case "6/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. Inadequate.\n"
+                        add_social_credit(user, 0)
+                case "X/6":
+                    for user_mention in users:
+                        user = await get_user_from_mention(user_mention, message.guild)
+                        string = string + f"{score} - {user.display_name}. -200 Social Credit.\n"
+                        add_social_credit(user, -200)
+        await message.channel.send(string)
+
 
 # ########## #
 # BOT EVENTS #
 # ########## #
 
+# 
+# ON READY
 #
+
 @bot.event
 async def on_ready():
     print(f'{bot.user}. Up and running.')
 
+#
+# ON MESSAGE
+#
+
 @bot.event
 async def on_message(message):
+    if message.author == bot.user:
+        return
     if message.author.bot:
+        await do_wordle_against_message(message)
         return
     if "ubi se" in message.content or "ubij se" in message.content or "kys" in message.content:
         await message.channel.send(file=discord.File(r"./Images/KillYourself.jpg"))
@@ -133,6 +208,9 @@ async def check_mia_clipstudiopaint(before, after):
     else:
         await user.send("Fala")
 
+#
+# ON PRESENCE UPDATE
+#
 
 @bot.event
 async def on_presence_update(before, after):
@@ -148,6 +226,10 @@ async def check_democratic_timeout(reaction, user):
         await reaction.message.author.timeout(datetime.timedelta(minutes=5), reason=f"Democracy")
         print(f"{reaction.message.author.display_name} timed out democratically")
 
+#
+# ON REACTION ADD
+#
+
 @bot.event
 async def on_reaction_add(reaction, user):
     await check_democratic_timeout(reaction, user)
@@ -157,7 +239,7 @@ async def on_reaction_add(reaction, user):
 # BOT COMMANDS #
 # ############ #
 
-#
+
 @bot.command(name="serverfetch", help="Linus")
 async def serverfetch(ctx):
     embed = discord.Embed(
@@ -174,6 +256,14 @@ async def serverfetch(ctx):
     embed.add_field(name = f"Sisa", value = f"Dinamo", inline = True)
     await ctx.send(embed = embed)
     #await ctx.send(f"Server name: {ctx.guild}")
+
+@bot.command(name="whoami", help="Displays who you are")
+async def whoami(ctx):
+    is_author_bot_admin : bool = False
+    if is_user_admin(ctx.message.author):
+        is_author_bot_admin = True
+    await ctx.send(f"{ctx.message.author.mention}\nUsername: {ctx.message.author.name}\nDisplay name: {ctx.message.author.display_name}\nTrowel Admin: " + str(is_author_bot_admin))
+
 
 #        #
 # SOCIAL #
@@ -196,7 +286,9 @@ async def social_leaderboard(ctx, amount = 10):
     string = f"--- TOP {amount} SOCIAL CREDIT HAVERS ---\n\n"
     for i in range(amount):
         if i < len(top):
-            string = string + f"{ctx.guild.get_member(int(top[i][0])).display_name} - {top[i][1]['credit']}\n"
+            # TODO: only perform this check if necesarry
+            user = await bot.fetch_user(top[i][0])
+            string = string + f"{user.display_name} - {top[i][1]['credit']}\n"
         else:
             break
     await ctx.send(string)
@@ -206,7 +298,6 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
     if not is_user_admin(ctx.message.author):
         await ctx.send("erm")
         return
-    print(user)
     if user == None or amount == None:
         await ctx.send("Proper format: `social add {user.mention} {amount}`")
         return
@@ -221,6 +312,19 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
     add_social_credit(user, amount)
     await ctx.send(f"Added {amount} social credit to {user.mention}, they now have {get_social_credit(user)} social credit")
 
+#       #
+# PEDRO #
+#       #
+
+@bot.command(name="pedro", help="Pedro")
+async def pedro(ctx):
+    random_pedro = random.randint(0, 39)
+    await ctx.channel.send(file=discord.File(r"./Pedro/Pedro" + str(random_pedro) + ".jpg"))
+
+#       #
+# DEBUG #
+#       #
+
 @bot.command(name="stop", help="Stops the bot")
 async def stop(ctx):
     if not is_user_admin(ctx.message.author):
@@ -232,24 +336,16 @@ async def stop(ctx):
 async def ping(ctx):
     await ctx.send("pong")
 
-@bot.command(name="whoami", help="Displays who you are")
-async def whoami(ctx):
-    is_author_bot_admin : bool = False
-    if is_user_admin(ctx.message.author):
-        is_author_bot_admin = True
-    await ctx.send(f"{ctx.message.author.mention}\nUsername: {ctx.message.author.name}\nDisplay name: {ctx.message.author.display_name}\nTrowel Admin: " + str(is_author_bot_admin))
+#      #
+# TEST #
+#      #
 
-@bot.command(name="pedro", help="Pedro")
-async def pedro(ctx):
-    random_pedro = random.randint(0, 39)
-    await ctx.channel.send(file=discord.File(r"./Pedro/Pedro" + str(random_pedro) + ".jpg"))
-
-@bot.command(name="test", help="test command")
+@bot.command(name="force_wordle_scoring")
 async def test(ctx):
-    message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-    print(message.content)
-    if "**Your group is on a " in message.content and " day streak!** 🔥🔥🔥 Here are yesterday's results:" in message.content:
-        print("Daily Wordle message detected.")
-    #await ctx.send(message.author.id)
+    if not is_user_admin(ctx.message.author):
+        ctx.send("Admin privilidge command")
+        return
+    reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+    await do_wordle_against_message(reply)
 
 bot.run(TOKEN)
