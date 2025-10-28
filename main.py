@@ -45,10 +45,32 @@ def is_user_admin(user):
 #
 
 # TODO: make this work when user not in guild
-async def get_user_from_mention(user_mention, guild):
-    user_id = user_mention[2:-1]
-    user = await guild.fetch_member(user_id)
-    return user
+async def get_user_from_mention(user_mention: str, guild: discord.Guild):
+    if user_mention.startswith("<@") and user_mention.endswith(">"):
+        user_id_str = user_mention.strip("<@!>")
+        try:
+            user_id = int(user_id_str)
+            return await guild.fetch_member(user_id)
+        except (ValueError, discord.NotFound):
+            print(f"Invalid Discord ID: {user_id_str}")
+            return None
+
+    elif user_mention.startswith("@"):
+        username = user_mention[1:]
+        member = discord.utils.find(
+            lambda m: m.name.lower() == username.lower() or (m.display_name and m.display_name.lower() == username.lower()),
+            guild.members,
+        )
+        if member:
+            return member
+        else:
+            print(f"Could not find user with name '{username}' in guild '{guild.name}'") # TODO: fix
+            return None
+
+    else:
+        print(f"Invalid format: {user_mention}")
+        return None
+
 
 
 # ################## #
@@ -106,9 +128,9 @@ def add_social_credit(user, amount):
 #
 
 
-async def do_wordle_against_message(message):
+async def do_wordle_scoring_against_message(message):
     if message.author.id == 1211781489931452447 and " day streak!** 🔥🔥🔥 Here are yesterday's results:" in message.content:
-        pattern = r"(\b\w+/6):((?: <@[\d]+>)+)"
+        pattern = r"(\b\w+/6):((?: ?(?:<@[\d]+>|@\w+))+)"
         matches = re.findall(pattern, message.content)
         results = {}
         for score, users in matches:
@@ -176,7 +198,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
     if message.author.bot:
-        await do_wordle_against_message(message)
+        await do_wordle_scoring_against_message(message)
         return
     if "ubi se" in message.content or "ubij se" in message.content or "kys" in message.content:
         await message.channel.send(file=discord.File(r"./Images/KillYourself.jpg"))
@@ -233,12 +255,19 @@ async def check_democratic_timeout(reaction, user):
 @bot.event
 async def on_reaction_add(reaction, user):
     await check_democratic_timeout(reaction, user)
+    # TODO: Starboard
+
+
+
 
 
 # ############ #
 # BOT COMMANDS #
 # ############ #
 
+#         #
+# GENERAL #
+#         #
 
 @bot.command(name="serverfetch", help="Linus")
 async def serverfetch(ctx):
@@ -280,6 +309,7 @@ async def social_standing(ctx):
 
 @social.command(name = "leaderboard")
 async def social_leaderboard(ctx, amount = 10):
+    database_instantiate(ctx.message.author)
     database = load_database()
     data = database[str(ctx.guild.id)]["social"]
     top = sorted(data.items(), key=lambda x: x[1].get("credit", 0), reverse=True)[:amount]
@@ -301,12 +331,13 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
     if user == None or amount == None:
         await ctx.send("Proper format: `social add {user.mention} {amount}`")
         return
+    print(user)
     if not isinstance(user, discord.Member):
         await ctx.send("Argument 1 must be a Discord user. `social add {user.mention} {amount}`")
         return
-    if amount.isdigit():
+    try:
         amount = int(amount)
-    else:
+    except ValueError:
         await ctx.send("Argument 2 must be int. `social add {user.mention} {amount}`")
         return
     add_social_credit(user, amount)
@@ -346,6 +377,6 @@ async def test(ctx):
         ctx.send("Admin privilidge command")
         return
     reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-    await do_wordle_against_message(reply)
+    await do_wordle_scoring_against_message(reply)
 
 bot.run(TOKEN)
