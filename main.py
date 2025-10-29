@@ -142,27 +142,27 @@ async def do_wordle_scoring_against_message(message):
                 case "1/6":
                     for user_mention in users:
                         user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. -800 Social Credit. The state is dissapointed.\n"
+                        string = string + f"{score} - {user.display_name}. `-800` Social Credit. The state is dissapointed.\n"
                         add_social_credit(user, -800)
                 case "2/6":
                     for user_mention in users:
                         user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. +500 Social Credit.\n"
+                        string = string + f"{score} - {user.display_name}. `+500` Social Credit.\n"
                         add_social_credit(user, 500)
                 case "3/6":
                     for user_mention in users:
                         user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. +400 Social Credit.\n"
+                        string = string + f"{score} - {user.display_name}. `+400` Social Credit.\n"
                         add_social_credit(user, 400)
                 case "4/6":
                     for user_mention in users:
                         user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. +200 Social Credit.\n"
+                        string = string + f"{score} - {user.display_name}. `+200` Social Credit.\n"
                         add_social_credit(user, 200)
                 case "5/6":
                     for user_mention in users:
                         user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. +100 Social Credit.\n"
+                        string = string + f"{score} - {user.display_name}. `+100` Social Credit.\n"
                         add_social_credit(user, 100)
                 case "6/6":
                     for user_mention in users:
@@ -172,7 +172,7 @@ async def do_wordle_scoring_against_message(message):
                 case "X/6":
                     for user_mention in users:
                         user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. -200 Social Credit.\n"
+                        string = string + f"{score} - {user.display_name}. `-200` Social Credit.\n"
                         add_social_credit(user, -200)
         await message.channel.send(string)
 
@@ -318,7 +318,7 @@ async def social_leaderboard(ctx, amount = 10):
         if i < len(top):
             # TODO: only perform this check if necesarry
             user = await bot.fetch_user(top[i][0])
-            string = string + f"{user.display_name} - {top[i][1]['credit']}\n"
+            string = string + f"{user.display_name} - `{top[i][1]['credit']}`\n"
         else:
             break
     await ctx.send(string)
@@ -361,6 +361,7 @@ async def stop(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send(f"Fakjumin")
         return
+    await ctx.send("Doviđenja")
     exit()
 
 @bot.command(name="ping", help="Pings the bot")
