@@ -20,7 +20,6 @@ list_of_admins = [
     ]
 
 list_of_admin_roles = [
-    "NULL"
     ]
 
 
@@ -43,6 +42,12 @@ def is_user_admin(user):
 #
 #
 #
+
+async def get_user(user_id, guild):
+    user = guild.get_member(user_id)
+    if user == None:
+        user = await bot.fetch_user(user_id)
+    return user
 
 # TODO: make this work when user not in guild
 async def get_user_from_mention(user_mention: str, guild: discord.Guild):
@@ -316,12 +321,13 @@ async def social_leaderboard(ctx, amount = 10):
     string = f"--- TOP {amount} SOCIAL CREDIT HAVERS ---\n\n"
     for i in range(amount):
         if i < len(top):
-            # TODO: only perform this check if necesarry
-            user = await bot.fetch_user(top[i][0])
+            user = await get_user(int(top[i][0]), ctx.guild)
             string = string + f"{user.display_name} - `{top[i][1]['credit']}`\n"
         else:
             break
     await ctx.send(string)
+
+# ADMIN
 
 @social.command(name = "add")
 async def social_add(ctx, user: discord.Member = None, amount = None):
@@ -349,11 +355,11 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
 
 @bot.command(name="pedro", help="Pedro")
 async def pedro(ctx):
-    random_pedro = random.randint(0, 39)
-    await ctx.channel.send(file=discord.File(r"./Pedro/Pedro" + str(random_pedro) + ".jpg"))
+    random_pedro = discord.File(f"./Pedro/{random.choice(os.listdir(R'./Pedro/'))}")
+    await ctx.send(file = random_pedro)
 
 #       #
-# DEBUG #
+# ADMIN #
 #       #
 
 @bot.command(name="stop", help="Stops the bot")
@@ -368,14 +374,10 @@ async def stop(ctx):
 async def ping(ctx):
     await ctx.send("pong")
 
-#      #
-# TEST #
-#      #
-
 @bot.command(name="force_wordle_scoring")
 async def test(ctx):
     if not is_user_admin(ctx.message.author):
-        ctx.send("Admin privilidge command")
+        await ctx.send("Admin privilidge command")
         return
     reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
     await do_wordle_scoring_against_message(reply)
