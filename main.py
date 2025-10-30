@@ -193,6 +193,7 @@ async def do_wordle_scoring_against_message(message):
 @bot.event
 async def on_ready():
     print(f'{bot.user}. Up and running.')
+    await bot.add_cog(Pedro(bot))
 
 #
 # ON MESSAGE
@@ -305,7 +306,7 @@ async def whoami(ctx):
 
 @bot.group(name = "social", help = "Perform various social credit actions", invoke_without_command = True)
 async def social(ctx):
-    await ctx.send("None or invalid arguments. try `help social`")
+    await ctx.send("None or invalid arguments. Try `help social`")
 
 @social.command(name = "standing")
 async def social_standing(ctx):
@@ -353,10 +354,19 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
 # PEDRO #
 #       #
 
-@bot.command(name="pedro", help="Pedro")
-async def pedro(ctx):
-    random_pedro = discord.File(f"./Pedro/{random.choice(os.listdir(R'./Pedro/'))}")
-    await ctx.send(file = random_pedro)
+class Pedro(commands.Cog, name = "Pedro"):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(name = "pedro", help = "Pedro")
+    async def pedro(self, ctx):
+        random_pedro = discord.File(f"./Pedro/{random.choice(os.listdir(R'./Pedro/'))}")
+        await ctx.send(file = random_pedro)
+
+    @commands.command(name = "peder", hidden = True)
+    async def peder(self, ctx):
+        await ctx.send(file = discord.File(f"./Images/peder.jpg"))
+
 
 #       #
 # ADMIN #
@@ -374,7 +384,7 @@ async def stop(ctx):
 async def ping(ctx):
     await ctx.send("pong")
 
-@bot.command(name="force_wordle_scoring")
+@bot.command(name="force_wordle_scoring", hidden = True)
 async def test(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send("Admin privilidge command")
