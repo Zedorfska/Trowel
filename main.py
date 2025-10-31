@@ -50,32 +50,49 @@ async def get_user(user_id, guild):
     return user
 
 # TODO: make this work when user not in guild
-async def get_user_from_mention(user_mention: str, guild: discord.Guild):
-    if user_mention.startswith("<@") and user_mention.endswith(">"):
-        user_id_str = user_mention.strip("<@!>")
-        try:
-            user_id = int(user_id_str)
-            return await guild.fetch_member(user_id)
-        except (ValueError, discord.NotFound):
-            print(f"Invalid Discord ID: {user_id_str}")
-            return None
+async def get_user_from_mention(user_mention, guild):
+    match = re.match(r"<@!?(?P<id>\d+)>", user_mention)
+    if match:
+        user_id = int(match.group("id"))
+        member = guild.get_member(user_id)
+        if member is None:
+            try:
+                member = await guild.fetch_member(user_id)
+            except Exception:
+                member = None
+        return member
 
-    elif user_mention.startswith("@"):
-        username = user_mention[1:]
-        member = discord.utils.find(
-            lambda m: m.name.lower() == username.lower() or (m.display_name and m.display_name.lower() == username.lower()),
-            guild.members,
-        )
-        if member:
-            return member
-        else:
-            print(f"Could not find user with name '{username}' in guild '{guild.name}'") # TODO: fix
-            return None
+    if user_mention.startswith("@"):
+        raw_name = user_mention[1:].strip()
 
-    else:
-        print(f"Invalid format: {user_mention}")
-        return None
+        def normalise(name: str) -> str:
+            return re.sub(r"[^a-z0-9]", "", name.lower())
 
+        norm_input = normalise(raw_name)
+
+        for member in guild.members:
+            if any(
+                norm_input == normalise(value)
+                for value in [
+                    member.display_name,
+                    member.name,
+                    getattr(member, "global_name", "") or "",
+                ]
+            ):
+                return member
+
+        for member in guild.members:
+            if any(
+                norm_input in normalise(value)
+                for value in [
+                    member.display_name,
+                    member.name,
+                    getattr(member, "global_name", "") or "",
+                ]
+            ):
+                return member
+
+    return None
 
 
 # ################## #
@@ -134,52 +151,68 @@ def add_social_credit(user, amount):
 
 
 async def do_wordle_scoring_against_message(message):
-    if message.author.id == 1211781489931452447 and " day streak!** 🔥🔥🔥 Here are yesterday's results:" in message.content:
-        pattern = r"(\b\w+/6):((?: ?(?:<@[\d]+>|@\w+))+)"
-        matches = re.findall(pattern, message.content)
-        results = {}
-        for score, users in matches:
-            user_list = [u.strip() for u in users.split()]
-            results[score] = user_list
-        string = "THE RESULTS ARE IN.\n\n"
-        for score, users in results.items():
+    if not (message.author.id == 1211781489931452447 and " day streak!** 🔥🔥🔥 Here are yesterday's results:" in message.content):
+        return
+
+    results = {}
+
+    for line in message.content.splitlines():
+        m = re.search(r"(\b\w+/6):\s*(.*)", line)
+        if not m:
+            continue
+        score, users_str = m.groups()
+
+        users = []
+        tokens = users_str.split()
+        i = 0
+        while i < len(tokens):
+            token = tokens[i]
+            if token.startswith("<@"):
+                users.append(token)
+                i += 1
+            elif token.startswith("@"):
+                name_tokens = [token]
+                i += 1
+                while i < len(tokens) and not tokens[i].startswith("<@") and not re.match(r"\w+/6", tokens[i]):
+                    name_tokens.append(tokens[i])
+                    i += 1
+                users.append(" ".join(name_tokens))
+            else:
+                i += 1
+        results[score] = users
+
+    string = "THE RESULTS ARE IN.\n\n"
+    for score, user_mentions in results.items():
+        for user_mention in user_mentions:
+            user = await get_user_from_mention(user_mention, message.guild)
+            if user is None:
+                string += f"{score} - {user_mention} (User not found)\n"
+                continue
+
             match score:
                 case "1/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. `-800` Social Credit. The state is dissapointed.\n"
-                        add_social_credit(user, -800)
+                    string += f"{score} - {user.display_name}. `-800` Social Credit. The state is disappointed.\n"
+                    add_social_credit(user, -800)
                 case "2/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. `+500` Social Credit.\n"
-                        add_social_credit(user, 500)
+                    string += f"{score} - {user.display_name}. `+500` Social Credit.\n"
+                    add_social_credit(user, 500)
                 case "3/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. `+400` Social Credit.\n"
-                        add_social_credit(user, 400)
+                    string += f"{score} - {user.display_name}. `+400` Social Credit.\n"
+                    add_social_credit(user, 400)
                 case "4/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. `+200` Social Credit.\n"
-                        add_social_credit(user, 200)
+                    string += f"{score} - {user.display_name}. `+200` Social Credit.\n"
+                    add_social_credit(user, 200)
                 case "5/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. `+100` Social Credit.\n"
-                        add_social_credit(user, 100)
+                    string += f"{score} - {user.display_name}. `+100` Social Credit.\n"
+                    add_social_credit(user, 100)
                 case "6/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. Inadequate.\n"
-                        add_social_credit(user, 0)
+                    string += f"{score} - {user.display_name}. Inadequate.\n"
+                    add_social_credit(user, 0)
                 case "X/6":
-                    for user_mention in users:
-                        user = await get_user_from_mention(user_mention, message.guild)
-                        string = string + f"{score} - {user.display_name}. `-200` Social Credit.\n"
-                        add_social_credit(user, -200)
-        await message.channel.send(string)
+                    string += f"{score} - {user.display_name}. `-200` Social Credit.\n"
+                    add_social_credit(user, -200)
+
+    await message.channel.send(string)
 
 
 # ########## #
@@ -306,19 +339,22 @@ async def whoami(ctx):
 
 @bot.group(name = "social", help = "Perform various social credit actions", invoke_without_command = True)
 async def social(ctx):
-    await ctx.send("None or invalid arguments. Try `help social`")
+    if ctx.message.content == "$social":
+        await ctx.send(f"This is a command group and requires an argument. Look up `{bot.command_prefix}help social`")
+    else:
+        await ctx.send(f"Invalid arguments. Try `{bot.command_prefix}help social`")
 
 @social.command(name = "standing")
 async def social_standing(ctx):
     social_credit = get_social_credit(ctx.message.author)
-    await ctx.send(f"Your social credit score is: " + str(social_credit))
+    await ctx.send(f"Your social credit score is: {social_credit}")
 
-@social.command(name = "leaderboard")
+@social.command(name = "leaderboard", brief = "Highest ranking members by Social Credit", description = "Sends the highest ranking members of the server.")
 async def social_leaderboard(ctx, amount = 10):
     database_instantiate(ctx.message.author)
     database = load_database()
     data = database[str(ctx.guild.id)]["social"]
-    top = sorted(data.items(), key=lambda x: x[1].get("credit", 0), reverse=True)[:amount]
+    top = sorted(data.items(), key=lambda x: x[1].get("credit", 0), reverse = True)[:amount]
     string = f"--- TOP {amount} SOCIAL CREDIT HAVERS ---\n\n"
     for i in range(amount):
         if i < len(top):
@@ -330,7 +366,7 @@ async def social_leaderboard(ctx, amount = 10):
 
 # ADMIN
 
-@social.command(name = "add")
+@social.command(name = "add", hidden = True)
 async def social_add(ctx, user: discord.Member = None, amount = None):
     if not is_user_admin(ctx.message.author):
         await ctx.send("erm")
