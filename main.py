@@ -5,6 +5,7 @@ import datetime
 import random
 import json
 import re
+import requests
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -282,9 +283,9 @@ async def on_presence_update(before, after):
 
 async def check_democratic_timeout(reaction, user):
     if reaction.emoji == "⏰" and reaction.count == 3:
-        add_social_credit(reaction.message.authorl, -200)
-        await reaction.message.reply(f"Začepi.\n-200 Social Credit", file=discord.File(r"./Images/Time.png"))
-        await reaction.message.author.timeout(datetime.timedelta(minutes=5), reason=f"Democracy")
+        add_social_credit(reaction.message.author, -200)
+        await reaction.message.reply(f"Začepi.\n-200 Social Credit", file = discord.File(r"./Images/Time.png"))
+        await reaction.message.author.timeout(datetime.timedelta(minutes = 5), reason = f"Democracy")
         print(f"{reaction.message.author.display_name} timed out democratically")
 
 #
@@ -358,6 +359,7 @@ async def social_leaderboard(ctx, amount = 10):
     string = f"--- TOP {amount} SOCIAL CREDIT HAVERS ---\n\n"
     for i in range(amount):
         if i < len(top):
+            string = string + f"{i}. "
             user = await get_user(int(top[i][0]), ctx.guild)
             string = string + f"{user.display_name} - `{top[i][1]['credit']}`\n"
         else:
@@ -408,7 +410,19 @@ class Pedro(commands.Cog, name = "Pedro"):
 # ADMIN #
 #       #
 
-@bot.command(name="stop", help="Stops the bot")
+@bot.command(name = "test", help = "")
+async def test(ctx):
+    if not is_user_admin(ctx.message.author):
+        await ctx.send("Admin command")
+        return
+
+
+@bot.command(name = "ip", help = "Show the IP this bot is being hosted on")
+async def check_ip(ctx):
+    r = requests.get("https://ifconfig.me")
+    await ctx.send(f"This bot is hosted on `{r.text}`")
+
+@bot.command(name = "stop", help="Stops the bot")
 async def stop(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send(f"Fakjumin")
@@ -416,11 +430,11 @@ async def stop(ctx):
     await ctx.send("Doviđenja")
     exit()
 
-@bot.command(name="ping", help="Pings the bot")
+@bot.command(name = "ping", help="Pings the bot")
 async def ping(ctx):
     await ctx.send("pong")
 
-@bot.command(name="force_wordle_scoring", hidden = True)
+@bot.command(name = "force_wordle_scoring", hidden = True)
 async def test(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send("Admin privilidge command")
