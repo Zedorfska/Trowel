@@ -6,6 +6,7 @@ import random
 import json
 import re
 import requests
+import languages
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -240,8 +241,17 @@ async def on_message(message):
     if message.author.bot:
         await do_wordle_scoring_against_message(message)
         return
-    if "ubi se" in message.content or "ubij se" in message.content or "kys" in message.content:
-        await message.channel.send(file=discord.File(r"./Images/KillYourself.jpg"))
+    #if message.author.id == 869617449681682485:
+    #    await message.add_reaction("⏰")
+    if "ubi se" in message.content.lower() or "ubij se" in message.content.lower() or "kys" in message.content.lower():
+        await message.channel.send(file = discord.File(r"./Images/KillYourself.jpg"))
+    if "sigm" in message.content.lower():
+        await message.channel.send("Ali kada sam ja rekao da sam ja Sigma????")
+    if "za ništa" in message.content.lower() or "za nista" in message.content.lower():
+        await message.channel.send(f"{message.author}, zapravo se kaže \"[ni za što](https://hjp.znanje.hr/index.php?show=search_by_id&id=eF1uXxA%3D)\".")
+    if "ne smije" in message.content.lower():
+        await message.channel.send(file = discord.File(r"./Images/NeSmijes.jpg"))
+
     await bot.process_commands(message)
 
 
@@ -282,6 +292,8 @@ async def on_presence_update(before, after):
 
 
 async def check_democratic_timeout(reaction, user):
+    if reaction.message.author.bot:
+        return
     if reaction.emoji == "⏰" and reaction.count == 3:
         add_social_credit(reaction.message.author, -200)
         await reaction.message.reply(f"Začepi.\n-200 Social Credit", file = discord.File(r"./Images/Time.png"))
@@ -298,6 +310,17 @@ async def on_reaction_add(reaction, user):
     # TODO: Starboard
 
 
+#
+# ON
+#
+
+@bot.event
+async def on_member_join(member):
+    await member.guild.system_channel.send(f"{member.mention} su nam se pridružili!")
+
+@bot.event
+async def on_member_remove(member):
+    await member.guild.system_channel.send(f"{member.mention} su nas napustili!")
 
 
 
@@ -415,6 +438,7 @@ async def test(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send("Admin command")
         return
+    await ctx.send(languages.test())
 
 
 @bot.command(name = "ip", help = "Show the IP this bot is being hosted on")
