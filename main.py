@@ -292,6 +292,7 @@ async def on_presence_update(before, after):
 
 
 async def check_democratic_timeout(reaction, user):
+    return
     if reaction.message.author.bot:
         return
     if reaction.emoji == "⏰" and reaction.count == 3:
@@ -433,12 +434,17 @@ class Pedro(commands.Cog, name = "Pedro"):
 # ADMIN #
 #       #
 
+def get_language(guild):
+    database = load_database()
+    return database[str(guild.id)]["config"]["language"]
+
 @bot.command(name = "test", help = "")
 async def test(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send("Admin command")
         return
-    await ctx.send(languages.test())
+    await ctx.send(get_language(ctx.guild))
+    await ctx.send(languages.test("test", get_language(ctx.guild)))
 
 
 @bot.command(name = "ip", help = "Show the IP this bot is being hosted on")
