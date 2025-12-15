@@ -251,6 +251,8 @@ async def on_message(message):
         await message.channel.send(f"{message.author}, zapravo se kaže \"[ni za što](https://hjp.znanje.hr/index.php?show=search_by_id&id=eF1uXxA%3D)\".")
     if "ne smije" in message.content.lower():
         await message.channel.send(file = discord.File(r"./Images/NeSmijes.jpg"))
+    if "cybersecurity" in message.content.lower() or "sajbersekjuriti" in message.content.lower():
+        await message.channel.send(file = discord.File(r"./Videos/Cybersecurity.mp4"))
 
     await bot.process_commands(message)
 
@@ -264,7 +266,7 @@ async def check_league_of_legends(before, after):
             return
     if after.activity.name == "League of Legends":
         add_social_credit(after, -200)
-        await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} JE UPALIO LEAGUE OF LEGENDS!!!\n-200 Social Credit")
+        await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} SU UPALILI LEAGUE OF LEGENDS!!!\n-200 Social Credit")
 
 async def check_mia_clipstudiopaint(before, after):
     if not after.id == 1123752229552267264:
@@ -292,7 +294,6 @@ async def on_presence_update(before, after):
 
 
 async def check_democratic_timeout(reaction, user):
-    return
     if reaction.message.author.bot:
         return
     if reaction.emoji == "⏰" and reaction.count == 3:
@@ -411,6 +412,12 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
         return
     add_social_credit(user, amount)
     await ctx.send(f"Added {amount} social credit to {user.mention}, they now have {get_social_credit(user)} social credit")
+
+#
+
+@bot.command(name = "avatar")
+async def avatar_get(ctx, user: discord.Member):
+    await ctx.send(user.avatar)
 
 #       #
 # PEDRO #
