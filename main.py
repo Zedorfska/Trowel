@@ -7,15 +7,24 @@ import json
 import re
 import requests
 import languages
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from discord.ext import commands
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+COC_TOKEN = os.getenv("COC_TOKEN")
 
 intents = discord.Intents.all()
 bot = commands.Bot(intents=intents, command_prefix='$')
+
+headers = {
+    "Accept": "application/json",
+    "authorization": f"Bearer {COC_TOKEN}"
+}
+
+
 
 list_of_admins = [
     219526746540736512
@@ -414,6 +423,49 @@ async def social_add(ctx, user: discord.Member = None, amount = None):
     await ctx.send(f"Added {amount} social credit to {user.mention}, they now have {get_social_credit(user)} social credit")
 
 #
+
+#       #
+# CLASH #
+#       #
+
+@bot.group(name = "clan", help = "Perform various CoC clan actions", invoke_without_command = True)
+async def clan(ctx):
+    if ctx.message.content == "$clan":
+        await ctx.send(f"This is a command group and requires an argument. Look up `{bot.command_prefix}help clan`")
+    else:
+        await ctx.send(f"Invalid arguments. Try `{bot.command_prefix}help clan`")
+
+#
+
+@clan.command(name = "currentwar")
+async def clan_currentwar(ctx):
+    response = requests.get("https://api.clashofclans.com/v1/clans/%232JJGGJR92/currentwar", headers = headers)
+    war_json = response.json()
+    start_time = war_json["startTime"]
+    start_time_datetime = datetime.strptime(start_time, "%Y%m%dT%H%M%S.%fZ")
+    start_time_epoch = int(start_time_datetime.replace(tzinfo=timezone.utc).timestamp())
+    members = war_json["clan"]["members"]
+    opponents = war_json["opponent"]["members"]
+    
+    message = ""
+
+    message += f"# {war_json['clan']['name']} vs {war_json['opponent']['name']}\n"
+    message += f"CURRENTLY IN {war_json['state'].upper()}\nWar starts <t:{start_time_epoch}:R>\n\n"
+    message += f"**Clan members:**\n"
+    for member in members:
+        message += f"{member['name']}\n"
+    message += f"\n"
+    message += f"**Opponent clan members:**\n"
+    for member in opponents:
+        message += f"{member['name']}\n"
+
+
+    await ctx.send(message)
+
+
+
+
+
 
 @bot.command(name = "avatar")
 async def avatar_get(ctx, user: discord.Member):
