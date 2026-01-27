@@ -274,8 +274,8 @@ async def check_league_of_legends(before, after):
         if before.activity.name == "League of Legends":
             return
     if after.activity.name == "League of Legends":
-        add_social_credit(after, -200)
-        await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} SU UPALILI LEAGUE OF LEGENDS!!!\n-200 Social Credit")
+        #add_social_credit(after, -200)
+        await bot.get_channel(1281595194365710406).send(f"!!! LEAGUE OF LEGENDS DETEKTIRAN !!!\nKORISNIK: {after.mention} SU UPALILI LEAGUE OF LEGENDS!!!\n~~-200 Social Credit~~")
 
 async def check_mia_clipstudiopaint(before, after):
     if not after.id == 1123752229552267264:
@@ -300,6 +300,9 @@ async def on_presence_update(before, after):
     await check_league_of_legends(before, after)
     await check_mia_clipstudiopaint(before, after)
 
+#
+#
+#
 
 
 async def check_democratic_timeout(reaction, user):
@@ -311,12 +314,20 @@ async def check_democratic_timeout(reaction, user):
         await reaction.message.author.timeout(datetime.timedelta(minutes = 5), reason = f"Democracy")
         print(f"{reaction.message.author.display_name} timed out democratically")
 
+
+#async def remove_hearts_reaction(reaction, user):
+#    if reaction.emoji == "♥️":
+#        await reaction.message.channel.send("!! inferiorni osjećanik srca detektiran !!")
+#        await reaction.remove(user)
+
 #
 # ON REACTION ADD
 #
 
+# TODO: make into on_raw_reaction_add
 @bot.event
 async def on_reaction_add(reaction, user):
+    #await remove_hearts_reaction(reaction, user)
     await check_democratic_timeout(reaction, user)
     # TODO: Starboard
 
@@ -440,10 +451,22 @@ async def clan(ctx):
 # TODO: this
 #async def coc_print_war_members(members):
 
-@clan.command(name = "currentwar")
+@clan.command(name = "currentwar", help = "Display information about current war status")
 async def clan_currentwar(ctx):
-    response = requests.get("https://api.clashofclans.com/v1/clans/%232JJGGJR92/currentwar", headers = headers)
+    response = requests.get("https://cocproxy.royaleapi.dev/v1/clans/%232JJGGJR92/currentwar", headers = headers)
     war_json = response.json()
+
+    message = ""
+
+    if war_json["state"] != "preparation" and war_json["state"] != "inWar":
+        if war_json["state"] == "notInWar":
+            message += "Clan is not making any war efforts."
+            await ctx.send(message)
+        elif war_json["state"] == "warEnded":
+            message += "Clan is at peace."
+            await ctx.send(message)
+        return
+    
     #TODO: make this a function
     war_start_time = war_json["startTime"]
     war_start_time_datetime = datetime.strptime(war_start_time, "%Y%m%dT%H%M%S.%fZ")
@@ -460,8 +483,6 @@ async def clan_currentwar(ctx):
     for member in members:
         if len(member["name"]) > len(member_with_longest_name["name"]):
             member_with_longest_name = member
-
-    message = ""
     
     if war_json["state"] == "preparation":
         message += f"# {war_json['clan']['name']} vs {war_json['opponent']['name']}\n"
@@ -469,9 +490,7 @@ async def clan_currentwar(ctx):
     elif war_json["state"] == "inWar":
         message += f"# {war_json['clan']['name']} [ {war_json['clan']['stars']} | {war_json['opponent']['stars']} ] {war_json['opponent']['name']}\n"
         message += f"War ends <t:{war_end_time_epoch}:R>\n\n"
-    elif war_json["state"] == "notInWar":
-        message += "{war_json['clan']} is not making any war efforts."
-               
+                   
     message += f"**{war_json['clan']['name']} clan members:**\n"
 
     for member in members_sorted:
@@ -521,14 +540,32 @@ async def clan_currentwar(ctx):
 
     await ctx.send(message)
 
+@clan.command(name = "info", help = "List info about the CoC clan")
+async def coc_info(ctx):
+    response = requests.get("https://cocproxy.royaleapi.dev/v1/clans/%232JJGGJR92", headers = headers)
+    info_json = response.json()
 
+    message = ""
+
+    message += f"# {info_json['name']}\n"
+    message += f"Level: {info_json['clanLevel']}\n\n"
+    
+    message += "**Clan members:**\n"
+
+    for member in info_json["memberList"]:
+        message += f"{member['name']}\n"
+
+    await ctx.send(message)
 
 
 
 
 @bot.command(name = "avatar")
-async def avatar_get(ctx, user: discord.Member):
-    await ctx.send(user.avatar)
+async def avatar_get(ctx, user: discord.Member = None):
+    if user != None:
+        await ctx.send(user.avatar)
+    else:
+        await ctx.send(ctx.author.avatar)
 
 #       #
 # PEDRO #
@@ -556,13 +593,19 @@ def get_language(guild):
     database = load_database()
     return database[str(guild.id)]["config"]["language"]
 
-@bot.command(name = "test", help = "")
+@bot.command(name = "test", help = "", hidden = True)
 async def test(ctx):
     if not is_user_admin(ctx.message.author):
         await ctx.send("Admin command")
         return
     await ctx.send(get_language(ctx.guild))
     await ctx.send(languages.test("test", get_language(ctx.guild)))
+
+@bot.command(name = "test2", help ="", hidden = True)
+async def test2(ctx):
+    reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+    the_channel = bot.get_channel(1373711806257958942)
+    await reply.forward(the_channel)
 
 
 @bot.command(name = "ip", help = "Show the IP this bot is being hosted on")
