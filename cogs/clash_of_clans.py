@@ -14,6 +14,8 @@ headers = {
     "authorization": f"Bearer {COC_TOKEN}"
 }
 
+# TODO: automatically send war status announcements
+
 class ClashOfClansCog(commands.Cog, name = "Clash of Clans", description = "Perform various CoC related actions"):
     def __init__(self, bot):
         self.bot = bot

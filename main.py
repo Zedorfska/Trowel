@@ -236,6 +236,7 @@ async def do_wordle_scoring_against_message(message):
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(activity=discord.Game("$help | Late is just for a little while, suck is forever."))
     print(f'{bot.user}. Up and running.')
 
 #
