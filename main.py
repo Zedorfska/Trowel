@@ -26,13 +26,6 @@ class Trowel(commands.Bot):
 
 bot = Trowel(intents=intents, command_prefix='$')
 
-headers = {
-    "Accept": "application/json",
-    "authorization": f"Bearer {COC_TOKEN}"
-}
-
-
-
 list_of_admins = [
     219526746540736512
     ]
