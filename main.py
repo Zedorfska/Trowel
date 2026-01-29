@@ -23,6 +23,7 @@ class Trowel(commands.Bot):
         await self.load_extension("cogs.test")
         await self.load_extension("cogs.clash_of_clans")
         await self.load_extension("cogs.pedro")
+        await self.load_extension("cogs.social_credit")
 
 bot = Trowel(intents=intents, command_prefix='$')
 
@@ -501,5 +502,12 @@ async def test(ctx):
         return
     reply = await ctx.channel.fetch_message(ctx.message.reference.message_id)
     await do_wordle_scoring_against_message(reply)
+
+@bot.command(name = "listcogs")
+async def list_cogs(ctx):
+    loaded_cogs = []
+    for cog_name in bot.cogs:
+        loaded_cogs.append(cog_name)
+    await ctx.send(loaded_cogs)
 
 bot.run(TOKEN)

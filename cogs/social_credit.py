@@ -1,14 +1,14 @@
 from discord.ext import commands
 
-class TestCog(commands.Cog, name = "Test Cog"):
+class SocialCreditCog(commands.Cog, name = "Social Credit"):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def super_command(self, ctx):
-        await ctx.send("Hello from SuperCog!")
+    async def social_command(self, ctx):
+        await ctx.send("Social credit!")
 
 async def setup(bot):
-    await bot.add_cog(TestCog(bot))
+    await bot.add_cog(SocialCreditCog(bot))
 
 
