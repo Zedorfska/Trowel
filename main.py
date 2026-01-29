@@ -24,6 +24,7 @@ class Trowel(commands.Bot):
         await self.load_extension("cogs.clash_of_clans")
         await self.load_extension("cogs.pedro")
         await self.load_extension("cogs.social_credit")
+        await self.load_extension("cogs.beton")
 
 bot = Trowel(intents=intents, command_prefix='$')
 
@@ -250,20 +251,7 @@ async def on_message(message):
         return
     if message.author.bot:
         await do_wordle_scoring_against_message(message)
-        return
-    #if message.author.id == 869617449681682485:
-    #    await message.add_reaction("⏰")
-    if "ubi se" in message.content.lower() or "ubij se" in message.content.lower() or "kys" in message.content.lower():
-        await message.channel.send(file = discord.File(r"./Images/KillYourself.jpg"))
-    if "sigm" in message.content.lower():
-        await message.channel.send("Ali kada sam ja rekao da sam ja Sigma????")
-    if "za ništa" in message.content.lower() or "za nista" in message.content.lower():
-        await message.channel.send(f"{message.author}, zapravo se kaže \"[ni za što](https://hjp.znanje.hr/index.php?show=search_by_id&id=eF1uXxA%3D)\".")
-    if "ne smije" in message.content.lower():
-        await message.channel.send(file = discord.File(r"./Images/NeSmijes.jpg"))
-    if "cybersecurity" in message.content.lower() or "sajbersekjuriti" in message.content.lower():
-        await message.channel.send(file = discord.File(r"./Videos/Cybersecurity.mp4"))
-
+        return 
     await bot.process_commands(message)
 
 
