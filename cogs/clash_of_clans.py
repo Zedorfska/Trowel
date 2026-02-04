@@ -99,31 +99,39 @@ class ClashOfClansCog(commands.Cog, name = "Clash of Clans", description = "Perf
     async def clan_war(self, ctx):
         response = requests.get("https://cocproxy.royaleapi.dev/v1/clans/%232JJGGJR92/currentwar", headers = headers)
         war_json = response.json()
-    
-        #TODO: make this a function
-        war_start_time_datetime = datetime.strptime(war_json["startTime"], "%Y%m%dT%H%M%S.%fZ")
-        war_start_time_epoch = int(war_start_time_datetime.replace(tzinfo=timezone.utc).timestamp())
-        war_end_time_datetime = datetime.strptime(war_json["endTime"], "%Y%m%dT%H%M%S.%fZ")
-        war_end_time_epoch = int(war_end_time_datetime.replace(tzinfo=timezone.utc).timestamp())
-        members = sorted(war_json["clan"]["members"], key = lambda m: m["mapPosition"])
-        opponents = sorted(war_json["opponent"]["members"], key = lambda m: m["mapPosition"])
-        
+
+
         message = ""
 
         if war_json["state"] == "preparation":
+
+            war_start_time_datetime = datetime.strptime(war_json["startTime"], "%Y%m%dT%H%M%S.%fZ")
+            war_start_time_epoch = int(war_start_time_datetime.replace(tzinfo=timezone.utc).timestamp())
+
             message += f"# {war_json['clan']['name']} vs {war_json['opponent']['name']}\n"
             message += f"War starts <t:{war_start_time_epoch}:R>\n\n"
+
         elif war_json["state"] == "inWar":
+
+            war_end_time_datetime = datetime.strptime(war_json["endTime"], "%Y%m%dT%H%M%S.%fZ")
+            war_end_time_epoch = int(war_end_time_datetime.replace(tzinfo=timezone.utc).timestamp())
+
             message += f"# {war_json['clan']['name']} [ {war_json['clan']['stars']} | {war_json['opponent']['stars']} ] {war_json['opponent']['name']}\n"
             message += f"War ends <t:{war_end_time_epoch}:R>\n\n"
+
         elif war_json["state"] == "notInWar":
             message += "The times of war lie ahead."
             await ctx.send(message)
             return
+
         elif war_json["state"] == "warEnded":
             message += "The times of war are long behind us."
             await ctx.send(message)
             return
+
+
+        members = sorted(war_json["clan"]["members"], key = lambda m: m["mapPosition"])
+        opponents = sorted(war_json["opponent"]["members"], key = lambda m: m["mapPosition"])
 
         message += f"**{war_json['clan']['name']} clan members:**\n"
         message += formatted_war_members(members, war_json["state"])
