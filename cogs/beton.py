@@ -1,6 +1,7 @@
 import discord
-from discord.ext import commands
+from discord.ext import tasks, commands
 from pathlib import Path
+from datetime import datetime
 
 ROOT_DIRECTORY = Path(__file__).resolve().parent.parent
 IMAGES_DIRECTORY = ROOT_DIRECTORY / "images"
@@ -12,11 +13,23 @@ NI_ZA_STO_RESPONSE = ", zapravo se kaže \"[ni za što](https://hjp.znanje.hr/in
 GEORGE_ORWELL_IMAGE = IMAGES_DIRECTORY / "NeSmijes.jpg"
 CYBERSECURITY_VIDEO = VIDEOS_DIRECTORY / "Cybersecurity.mp4"
 
+KRIM_TIM_DVA = VIDEOS_DIRECTORY / "15-00.mp4"
 
 # This cog contains random in jokes, you probably want it off
 class BetonCog(commands.Cog, name = "Beton"):
     def __init__(self, bot):
         self.bot = bot
+        self.krim_tim_dva.start()
+    
+    @tasks.loop(minutes = 1)
+    async def krim_tim_dva(self):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M")
+        #print("Current Time =", current_time)
+        if current_time == '15:00':
+            channel = self.bot.get_channel(1281595194365710406)
+            if channel:
+                await channel.send(file=discord.File(KRIM_TIM_DVA))
 
     @commands.Cog.listener()
     async def on_message(self, message):

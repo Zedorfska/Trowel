@@ -287,7 +287,7 @@ async def check_mia_clipstudiopaint(before, after):
 @bot.event
 async def on_presence_update(before, after):
     await check_league_of_legends(before, after)
-    await check_mia_clipstudiopaint(before, after)
+    #await check_mia_clipstudiopaint(before, after)
 
 #
 #

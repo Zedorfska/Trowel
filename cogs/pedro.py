@@ -8,7 +8,7 @@ class PedroCog(commands.Cog, name = "Pedro"):
         self.bot = bot
 
         self.pedro_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Pedro"))
-        self.images_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Images"))
+        self.images_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "images"))
 
     @commands.command(name = "pedro", description = "Pedro", help = "Pedro")
     async def pedro(self, ctx):
@@ -29,5 +29,3 @@ class PedroCog(commands.Cog, name = "Pedro"):
 
 async def setup(bot):
     await bot.add_cog(PedroCog(bot))
-
-
