@@ -141,8 +141,8 @@ class ClashOfClansCog(commands.Cog, name = "Clash of Clans", description = "Perf
 
                     print(league_war_json)
 
-                    if league_war_Json["state"] == "inWar":
-                        pass
+                    #if league_war_json["state"] == "inWar":
+                    #    pass
 
                     
                     

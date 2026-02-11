@@ -1,6 +1,7 @@
 # bot.py
 import os
 import discord
+from discord.ext import tasks
 import datetime
 import random
 import json
@@ -238,8 +239,69 @@ async def do_wordle_scoring_against_message(message):
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game("$help | Late is just for a little while, suck is forever."))
     print(f'{bot.user}. Up and running.')
+    set_random_status.start()
+    #await bot.get_channel(1281595194365710406).send("ubij se")
+
+@tasks.loop(minutes = 5)
+async def set_random_status():
+    status_message = "$help"
+
+    quote_list = [
+        f"Steam frame {datetime.now().strftime('%d. %m.')}",            #####
+        "Late is just for a little while, suck is forever.",
+        "Niko ti meni trebaš.",
+        "Ja ne vidim! Ja ne vidim!",
+        "Istaknut Povijesničar napada u Clan Waru.",
+        "Istaknut Povijesničar igra svakodašnji Wordle.",
+        "Istaknut Povijesničar se obrazuje o riječi dana."
+        "Day one no fent.",
+        "Needukaciran si.",
+        "GABRIJELE, PAZI!",
+        "Timeoutam Hrvoja...",
+        "Mravionik.",
+        "Oh, now there is no sound",
+        "Moj dečko ima 8 godin",
+        #"Defect from the Guild which has lied to you, Beton member.",
+        "Tam sam za 5!",
+        "yeah this mf is my GOAT",
+        "Is 14 and 17 okay..",
+        "Jedan metar bomboclaat UTP kabel",
+        "People like... the homosexuals...",
+        "AIDA!!!",
+        "jel od (((onih)))?",
+        "A PET JE POPODNE!!",
+        "!! LEAGUE OF LEGENDS DETEKTIRAN !!",
+        "Hrvoje....Hrvoje bit ce sve uredu samo te moram izvuc iz Davora....",
+        "Zapravo se kaže \"Ni za što\".",
+        "Nek se mali najede kurca...",
+        "Pa pitaj ChatGPT.",
+        ":bliss:",
+        "Švarkiram ga.",
+        "$pedro",
+        "NEVER cutting this shit again",
+        "Baba mi je imala moždani udar! 😂😂😂",
+        "Bajojajo! Bajojajo!",
+        "Jel se tusiras",
+        "Juno, okači Zvjezdaninog ćaću na štrik Yandere Sim style.",
+        "\"Moram pricat sa Zvjezdanom u vcu cijeli dan💔\"",
+        "\"Samoubojstvo *JE* riješenje!\"",
+        "Rezanje noktiju nije tako gadno...",
+        "Rain BOS",
+        "#1 Archivist hater!",
+        "❤️ - The one true heart.",
+        "♥️ - The root of all evil.",
+        "Ne možeš reć'",
+        "Zašto si toliko ljut? Nije to tako ozbiljno...",
+    ]
+
+    if datetime.now().weekday() == 2:
+        quote_list.append(f"Happy {random.choice([ 'Wilson', 'Willow', 'Wolfgang', 'Wendy', 'WX-78', 'Wickerbottom', 'Woodie', 'Wes', 'Maxwell...', 'Wigfrid', 'Webber', 'Winona', 'Warly', 'Wortox', 'Wormwood', 'Wurt', 'Walter', 'Wanda' ])} Wednesday")
+
+    status_quote = random.choice(quote_list)
+
+    await bot.change_presence(activity=discord.Game(f"{status_message} | {status_quote}"))
+
 
 #
 # ON MESSAGE
@@ -305,9 +367,8 @@ async def check_democratic_timeout(reaction, user):
 
 
 async def remove_hearts_reaction(reaction, user):
-    print(reaction.emoji)
     if reaction.emoji == "♥️":
-        gif = discord.File("./Videos/Srca.gif")
+        gif = discord.File("./videos/Srca.gif")
         await reaction.message.reply("!! inferiorni osjećanik srca detektiran !!", file = gif)
         await reaction.remove(user)
 
@@ -497,5 +558,10 @@ async def list_cogs(ctx):
     for cog_name in bot.cogs:
         loaded_cogs.append(cog_name)
     await ctx.send(loaded_cogs)
+
+@bot.command(name = "test3")
+async def test_3(ctx):
+    async for i in ctx.channel.history(limit = 12):
+        print(i.author.id)
 
 bot.run(TOKEN)
