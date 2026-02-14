@@ -2,13 +2,12 @@
 import os
 import discord
 from discord.ext import tasks
-import datetime
 import random
 import json
 import re
 import requests
 import languages
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -242,18 +241,19 @@ async def on_ready():
     print(f'{bot.user}. Up and running.')
     set_random_status.start()
     #await bot.get_channel(1281595194365710406).send("ubij se")
+    #await bot.get_channel(1281590478155943936).send("niti jedan dan da si fulo više...")
 
 @tasks.loop(minutes = 5)
 async def set_random_status():
     status_message = "$help"
 
     quote_list = [
-        f"Steam frame {datetime.now().strftime('%d. %m.')}",            #####
+        f"Steam Frame {datetime.now().strftime('%d. %m.')}",            #####
         "Late is just for a little while, suck is forever.",
         "Niko ti meni trebaš.",
         "Ja ne vidim! Ja ne vidim!",
         "Istaknut Povijesničar napada u Clan Waru.",
-        "Istaknut Povijesničar igra svakodašnji Wordle.",
+        "Istaknut Povijesničar odigra svakodašnji Wordle.",
         "Istaknut Povijesničar se obrazuje o riječi dana."
         "Day one no fent.",
         "Needukaciran si.",
@@ -295,8 +295,12 @@ async def set_random_status():
         "Zašto si toliko ljut? Nije to tako ozbiljno...",
     ]
 
-    if datetime.now().weekday() == 2:
+    now = datetime.now()
+
+    if now.weekday() == 2:
         quote_list.append(f"Happy {random.choice([ 'Wilson', 'Willow', 'Wolfgang', 'Wendy', 'WX-78', 'Wickerbottom', 'Woodie', 'Wes', 'Maxwell...', 'Wigfrid', 'Webber', 'Winona', 'Warly', 'Wortox', 'Wormwood', 'Wurt', 'Walter', 'Wanda' ])} Wednesday")
+
+    #if now.time() ==
 
     status_quote = random.choice(quote_list)
 
@@ -563,5 +567,10 @@ async def list_cogs(ctx):
 async def test_3(ctx):
     async for i in ctx.channel.history(limit = 12):
         print(i.author.id)
+
+@bot.command(name = "steam_frame")
+async def steam_frame(ctx):
+    frame_tomorrow = date.today() + timedelta(days = 1)
+    await ctx.send(f"Steam Frame releases {frame_tomorrow.strftime('%d. %m.')}")
 
 bot.run(TOKEN)
