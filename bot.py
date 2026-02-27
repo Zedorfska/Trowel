@@ -22,6 +22,7 @@ class Trowel(commands.Bot):
     async def setup_hook(self):
         await self.load_extension("cogs.test")
         await self.load_extension("cogs.clash_of_clans")
+        await self.load_extension("cogs.helldivers2")
         await self.load_extension("cogs.pedro")
         await self.load_extension("cogs.social_credit")
         await self.load_extension("cogs.beton")

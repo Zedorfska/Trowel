@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
+import random
 
 ROOT_DIRECTORY = Path(__file__).resolve().parent.parent
 IMAGES_DIRECTORY = ROOT_DIRECTORY / "images"
@@ -15,7 +16,7 @@ NI_ZA_STO_RESPONSE = ", zapravo se kaže \"[ni za što](https://hjp.znanje.hr/in
 GEORGE_ORWELL_IMAGE = IMAGES_DIRECTORY / "NeSmijes.jpg"
 CYBERSECURITY_VIDEO = VIDEOS_DIRECTORY / "Cybersecurity.mp4"
 
-RIJEC_DANA_IMAGE = IMAGES_DIRECTORY / "RijecDanaTrowel.png"
+RIJEC_DANA_IMAGE = IMAGES_DIRECTORY / "RijecDana.png"
 
 KRIM_TIM_DVA = VIDEOS_DIRECTORY / "15-00.mp4"
 
@@ -95,28 +96,100 @@ class BetonCog(commands.Cog, name = "Beton"):
 
         message += f"# {word}\n"
         message += "\n"
-        message += f"-# {word_type}\n"
+        message += f"-# *{word_type}*\n"
         message += "\n"
         message += "**Definicija**\n"
         message += f"> {definition}\n"
         message += "\n"
         message += "**Etimologija**\n"
         message += f"> {etimology}\n"
-        message += f"-# [Saznaj više...]({more_info_link})\n"
+        message += f"-# [__Saznaj više...__](<{more_info_link}>)\n"
         message += "\n"
         message += "-# *HJPA -* ***#XXX***\n"
         message += "\n"
-        message += "-# ||Ovu bezdušnu automatizaciju vam donosi *Trowel*!||\n"
+        message += "-# ||Ovu bezdušnu automatizaciju vam donosi [Trowel](<https://github.com/Zedorfska/Trowel>)!||\n"
         message += "{ping}"
         
         await ctx.send(file = discord.File(RIJEC_DANA_IMAGE))
 
         await ctx.send(message)
 
+    @commands.command(name = "mihael_gpt")
+    async def mihael_gpt(self, ctx):
+        message = ""
+
+        message += "Vadim "
+
+        start = [
+            "kitu",
+            "kituljak",
+            "jaja",
+            "dlake",
+            "švarkenis",
+            "vršak moje gljivice",
+            "svoju rupu",
+            "šmrklje"
+        ]
+
+        message += random.choice(start)
+
+        message += " i "
+
+        middle = [
+            "mlataram",
+            "mažem",
+            "švarkam",
+            "škakljam",
+            "trpam"
+        ]
+
+        message += random.choice(middle)
+
+        message += " "
+
+        end = [
+            "po stolu",
+            "po HŽ vlaku",
+            "po Kozmu",
+            "po tvom anusu"
+        ]
+
+        message += random.choice(end)
+
+        message += " "
+
+        if random.random() > 0.5:
+            varity = [
+                "jako",
+                "žestoko",
+                "ekstremno",
+                "profesionalno"
+            ]
+
+            message += random.choice(varity)
         
+        avatar_url = "https://cdn.discordapp.com/attachments/837682521600032789/1473452116592034049/MihaelJoyous11.png?ex=699642b8&is=6994f138&hm=d42af12581f2daec74e289631daedb06e99c7531c8e83e79b809be8576296a32&"
+        webhook = await ctx.channel.create_webhook(name = "Mihael Švarčan")
+ 
+        await webhook.send(message, username = "Mihael Švarčan", avatar_url = avatar_url)
+        await webhook.delete()
+
+        #await ctx.send(message)
+
+    @commands.command(name = "truplo")
+    async def truplo(self, ctx):
+        response = requests.get("https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=753650")
+        playercount_json = response.json()
+
+        playercount = playercount_json["response"]["player_count"]
+
+        if playercount == 0:
+            await ctx.send("Čovječanstvo je odustalo od trupla.")
+        elif playercount == 1:
+            await ctx.send(f"Truplo trenutno oživljava {playercount} osoba.")
+        elif playercount >1:
+            await ctx.send(f"Truplo trenutno oživljava {playercount} ljudi.")
 
 
 async def setup(bot):
     await bot.add_cog(BetonCog(bot))
-
-
