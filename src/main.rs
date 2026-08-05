@@ -1,10 +1,15 @@
 use serenity::{
-    all::{ClientBuilder, Command, Context, EventHandler, GatewayIntents, Interaction, Message, Ready},
+    all::{
+        ClientBuilder, Command, CommandDataOptionValue, CommandInteraction, Context, EventHandler,
+        GatewayIntents, Interaction, Message, Ready,
+    },
     async_trait,
 };
 use std::collections::HashMap;
 
 mod commands;
+mod data;
+
 use commands::{all_commands, BotCommand, CommandSource};
 
 const PREFIX: &str = "$";
@@ -20,6 +25,20 @@ impl Handler {
     }
 }
 
+fn slash_args(cmd: &CommandInteraction) -> Vec<String> {
+    cmd.data
+        .options
+        .iter()
+        .map(|opt| match &opt.value {
+            CommandDataOptionValue::String(s) => s.clone(),
+            CommandDataOptionValue::Integer(i) => i.to_string(),
+            CommandDataOptionValue::Boolean(b) => b.to_string(),
+            CommandDataOptionValue::Number(n) => n.to_string(),
+            other => format!("{other:?}"),
+        })
+        .collect()
+}
+
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
@@ -33,7 +52,10 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(cmd) = interaction {
             if let Some(handler) = self.commands.get(cmd.data.name.as_str()) {
-                handler.run(&ctx, &CommandSource::Slash(&cmd), &[]).await;
+                let args = slash_args(&cmd);
+                if let Err(e) = handler.run(&ctx, &CommandSource::Slash(&cmd), &args).await {
+                    eprintln!("command '{}' failed: {e}", cmd.data.name);
+                }
             }
         }
     }
@@ -48,7 +70,9 @@ impl EventHandler for Handler {
         let args: Vec<String> = parts.map(String::from).collect();
 
         if let Some(handler) = self.commands.get(name) {
-            handler.run(&ctx, &CommandSource::Prefix(&msg), &args).await;
+            if let Err(e) = handler.run(&ctx, &CommandSource::Prefix(&msg), &args).await {
+                eprintln!("command '{name}' failed: {e}");
+            }
         }
     }
 }

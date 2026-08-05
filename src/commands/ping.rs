@@ -14,7 +14,7 @@ impl BotCommand for Ping {
         CreateCommand::new("ping").description("Replies with pong")
     }
 
-    async fn run(&self, ctx: &Context, source: &CommandSource<'_>, _args: &[String]) {
-        let _ = source.reply(ctx, "pong").await;
+    async fn run(&self, ctx: &Context, source: &CommandSource<'_>, _args: &[String]) -> serenity::Result<()> {
+        source.reply(ctx, "pong").await
     }
 }

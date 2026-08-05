@@ -28,12 +28,15 @@ impl<'a> CommandSource<'a> {
 pub trait BotCommand: Send + Sync {
     fn name(&self) -> &'static str;
     fn register(&self) -> CreateCommand;
-    async fn run(&self, ctx: &Context, source: &CommandSource<'_>, args: &[String]);
+    async fn run(&self, ctx: &Context, source: &CommandSource<'_>, args: &[String]) -> serenity::Result<()>;
 }
 
 mod ping;
-
+mod define;
 
 pub fn all_commands() -> Vec<Box<dyn BotCommand>> {
-    vec![Box::new(ping::Ping)]
+    vec![
+        Box::new(ping::Ping),
+        Box::new(define::Define)
+    ]
 }
